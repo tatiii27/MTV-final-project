@@ -332,9 +332,6 @@
         <p class="explore-subtitle">
           Choose a metric and year to see how gender gaps vary by country.
         </p>
-        <p class="helper-text">
-          Drag to rotate, hover to compare, click to lock a country’s stats. Use reset to clear the panel.
-        </p>
 
         <div class="explore-controls">
           <div class="control-group">
@@ -342,17 +339,17 @@
             <select id="metric-select"></select>
           </div>
 
-          <div class="control-group">
-            <label for="decade-select">
-              Decade
-            </label>
-            <select id="decade-select"></select>
-          </div>
-          <div class="control-group reset-group">
-            <label class="sr-only" for="reset-explore">Reset</label>
-            <button id="reset-explore" type="button">Reset view</button>
-          </div>
-        </div>
+  <div class="control-group">
+    <label for="decade-select">
+      Decade
+    </label>
+    <select id="decade-select"></select>
+  </div>
+  <div class="control-group control-group--reset">
+    <label class="sr-only" for="explore-reset"></label>
+    <button id="explore-reset" type="button" aria-label="Reset metric and decade">Reset</button>
+  </div>
+</div>
 
         <section id="globe-explore-section">
           <div id="globe-explore-container">

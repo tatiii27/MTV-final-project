@@ -112,13 +112,21 @@ body {
 }
 
 #metric-select,
-#decade-select {
+#decade-select,
+#explore-reset {
   padding: 6px 8px;
   border-radius: 6px;
   border: 1px solid #2c3348;
   background: #111522;
   color: #f5f5f5;
   cursor: pointer;
+  height: 34px;
+}
+
+#explore-reset {
+  margin-top: 0;
+  background: linear-gradient(135deg, #243147, #1a2236);
+  border: 1px solid #33405f;
 }
 
 
@@ -570,7 +578,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  align-items: center;
+  align-items: flex-end;
   margin-bottom: 12px;
 }
 
@@ -578,7 +586,13 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 220px;
+  min-width: 200px;
+}
+
+.explore-controls .control-group--reset {
+  min-width: 120px;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .explore-controls label {
@@ -603,7 +617,8 @@ body {
 
 #globe-explore-container {
   position: relative;
-  max-width: 780px;
+  max-width: 670px;
+  margin: 0 auto;
   aspect-ratio: 1 / 1;
   margin-top: 8px;
 }

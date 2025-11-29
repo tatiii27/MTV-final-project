@@ -289,6 +289,7 @@ countriesLayer
   // Controls & legend
   const metricSelect = document.getElementById("metric-select");
   const decadeSelect = document.getElementById("decade-select");
+  const exploreReset = document.getElementById("explore-reset");
   const legendMin = document.getElementById("legend-min");
   const legendMax = document.getElementById("legend-max");
   const legendBar = document.querySelector("#legend-explore .legend-bar");
@@ -297,6 +298,7 @@ countriesLayer
   if (
     !metricSelect ||
     !decadeSelect ||
+    !exploreReset ||
     !legendMin ||
     !legendMax ||
     !legendBar ||
@@ -385,14 +387,16 @@ countriesLayer
             )
           ) || metricColumns[0];
 
-        currentMetric = preferredMetric;
+        currentMetric = null;
 
-        decades = Array.from(new Set(filtered.map((d) => d.Decade))).sort(
+        decades = Array.from(new Set(filtered.map((d) => d.Decade)))
+          .filter((dec) => !dec.startsWith("2020"))
+          .sort(
           (a, b) =>
             parseInt(a.split("-")[0]) - parseInt(b.split("-")[0])
         );
 
-        currentDecade = decades[decades.length - 1];
+        currentDecade = null;
 
         setupControls();
         updateChoropleth();
@@ -404,33 +408,64 @@ countriesLayer
 
   function setupControls() {
     metricSelect.innerHTML = "";
+    // placeholder for metric
+    const metricPlaceholder = document.createElement("option");
+    metricPlaceholder.value = "";
+    metricPlaceholder.disabled = true;
+    metricPlaceholder.selected = true;
+    metricPlaceholder.textContent = "Select metric";
+    metricSelect.appendChild(metricPlaceholder);
+
     metricColumns.forEach((col) => {
       const opt = document.createElement("option");
       opt.value = col;
       opt.textContent = prettyMetricLabel(col);
       metricSelect.appendChild(opt);
     });
-    metricSelect.value = currentMetric;
+    metricSelect.value = "";
 
     metricSelect.addEventListener("change", () => {
-      currentMetric = metricSelect.value;
+      currentMetric = metricSelect.value || null;
       updateChoropleth();
       clearCountryStats(false);
     });
 
     decadeSelect.innerHTML = "";
+    const decadePlaceholder = document.createElement("option");
+    decadePlaceholder.value = "";
+    decadePlaceholder.disabled = true;
+    decadePlaceholder.selected = true;
+    decadePlaceholder.textContent = "Select decade";
+    decadeSelect.appendChild(decadePlaceholder);
+
     decades.forEach((dec) => {
       const opt = document.createElement("option");
       opt.value = dec;
       opt.textContent = dec;
       decadeSelect.appendChild(opt);
     });
-    decadeSelect.value = currentDecade;
+    decadeSelect.value = "";
 
     decadeSelect.addEventListener("change", () => {
-      currentDecade = decadeSelect.value;
+      currentDecade = decadeSelect.value || null;
       updateChoropleth();
       clearCountryStats(false);
+    });
+
+    exploreReset.addEventListener("click", () => {
+      metricSelect.value = "";
+      decadeSelect.value = "";
+      currentMetric = null;
+      currentDecade = null;
+      clearCountryStats(true, "Select a country to see its decade-average stats.");
+      countriesLayer.selectAll("path.country").attr("fill", "#444f7a");
+      if (legendMin && legendMax) {
+        legendMin.textContent = "–";
+        legendMax.textContent = "–";
+      }
+      if (legendBar) {
+        legendBar.style.backgroundImage = "none";
+      }
     });
   }
 
