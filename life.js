@@ -42,6 +42,7 @@ let currentRegion = null;
 let currentYear = null;
 let currentGender = "female";
 let currentStageIndex = 0;
+let stageState = {};
 
 const regionSelect = d3.select("#lp-region-select");
 const yearSelect = d3.select("#lp-year-select");
@@ -52,6 +53,12 @@ const textEl = d3.select("#lp-stage-text");
 const miniChartContainer = d3.select("#lp-stage-mini-chart");
 const prevBtn = d3.select("#lp-prev-stage");
 const nextBtn = d3.select("#lp-next-stage");
+const guessSection = d3.select("#lp-guess-section");
+const guessInput = d3.select("#lp-guess-input");
+const guessNumber = d3.select("#lp-guess-number");
+const guessSubmit = d3.select("#lp-guess-submit");
+const guessFeedback = d3.select("#lp-guess-feedback");
+const guessStageLabel = d3.select("#lp-guess-stage-label");
 
 
 d3.csv("data/gender_regions_decades.csv", d3.autoType).then((data) => {
@@ -59,6 +66,7 @@ d3.csv("data/gender_regions_decades.csv", d3.autoType).then((data) => {
 
  initControls();
  initStageTrack();
+ resetStageState();
  
  currentRegion = regionSelect.property("value");
  currentYear = +yearSelect.property("value");
@@ -95,11 +103,13 @@ function initControls() {
 
  regionSelect.on("change", () => {
  currentRegion = regionSelect.property("value");
+ resetStageState();
  updateStageView();
  });
 
  yearSelect.on("change", () => {
  currentYear = +yearSelect.property("value");
+ resetStageState();
  updateStageView();
  });
 
@@ -108,6 +118,8 @@ function initControls() {
  currentGender = btn.attr("data-gender");
  genderToggle.selectAll("button").classed("active", false);
  btn.classed("active", true);
+ genderToggle.attr("data-active", currentGender);
+ resetStageState();
  updateStageView();
  });
 
@@ -118,24 +130,47 @@ function initControls() {
  }
  });
 
- nextBtn.on("click", () => {
+nextBtn.on("click", () => {
  if (currentStageIndex < stages.length - 1) {
  currentStageIndex += 1;
  updateStageView();
  }
+});
+
+ // Guess submit
+ guessSubmit.on("click", () => {
+   const stage = stages[currentStageIndex];
+   const row = getCurrentRow();
+   if (!row) return;
+   const actual = getStageActualValue(stage.id, row);
+   if (!isNumber(actual)) {
+     guessFeedback.text("No data to check your guess here.");
+     return;
+   }
+   const guessVal = +guessInput.property("value");
+   if (!isNumber(guessVal)) return;
+
+   const diff = Math.abs(guessVal - actual);
+   const feedbackText = `You guessed ${guessVal.toFixed(1)}. Actual is ${actual.toFixed(1)}. You were off by ${diff.toFixed(1)}.`;
+   guessFeedback.text(feedbackText);
+
+   stageState[stage.id] = { revealed: true, guess: guessVal, feedback: feedbackText };
+   nextBtn.property("disabled", currentStageIndex === stages.length - 1 ? false : false);
+   updateStageView();
  });
 }
 
 function initStageTrack() {
  const nodes = stageTrack
- .selectAll(".stage-node")
- .data(stages)
- .join("div")
- .attr("class", "stage-node")
- .on("click", (_, d) => {
- currentStageIndex = stages.findIndex((s) => s.id === d.id);
- updateStageView();
- });
+.selectAll(".stage-node")
+.data(stages)
+.join("div")
+.attr("class", "stage-node")
+.on("click", (_, d) => {
+   if (!getCurrentRow()) return;
+   currentStageIndex = stages.findIndex((s) => s.id === d.id);
+   updateStageView();
+});
 
  nodes
  .append("div")
@@ -148,18 +183,56 @@ function initStageTrack() {
  .text((d) => d.label);
 }
 
+function resetStageState() {
+ stageState = {};
+ stages.forEach((s) => {
+   stageState[s.id] = { revealed: false, guess: null, feedback: "" };
+ });
+}
+
+function getCurrentRow() {
+ if (!currentRegion || !currentYear) return null;
+ return allData.find((d) => d.region === currentRegion && d.Year === currentYear);
+}
+
+function setGuessUI(stageId) {
+ const ranges = {
+   primary: { min: 0, max: 120, step: 1, label: "Enrollment %" },
+   secondary: { min: 0, max: 120, step: 1, label: "Enrollment %" },
+   tertiary: { min: 0, max: 140, step: 1, label: "Enrollment %" },
+   fertility: { min: 0, max: 8, step: 0.1, label: "Births per woman" },
+   longevity: { min: 40, max: 90, step: 0.5, label: "Life expectancy (years)" },
+ };
+ const r = ranges[stageId] || { min: 0, max: 100, step: 1, label: "" };
+ guessInput.attr("min", r.min).attr("max", r.max).attr("step", r.step);
+ guessNumber.attr("min", r.min).attr("max", r.max).attr("step", r.step);
+ const preset = stageState[stageId]?.guess;
+ const startVal = isNumber(preset) ? preset : (r.min + r.max) / 2;
+ guessInput.property("value", startVal);
+ guessNumber.property("value", startVal);
+ guessStageLabel.text(r.label);
+ guessFeedback.text(stageState[stageId]?.feedback || "");
+}
+
+guessInput.on("input", function () {
+ guessNumber.property("value", this.value);
+});
+
+guessNumber.on("input", function () {
+ guessInput.property("value", this.value);
+});
+
 
 
 function updateStageView() {
  if (!currentRegion) currentRegion = regionSelect.property("value");
  if (!currentYear) currentYear = +yearSelect.property("value");
 
- 
- const row = allData.find(
- (d) => d.region === currentRegion && d.Year === currentYear
- );
-
+ const row = getCurrentRow();
  const stage = stages[currentStageIndex];
+ const state = stageState[stage.id] || { revealed: false, feedback: "" };
+ setGuessUI(stage.id);
+ guessSection.style("display", row ? null : "none");
 
  
  stageTrack.selectAll(".stage-node").classed("active", (d, i) => {
@@ -175,13 +248,18 @@ function updateStageView() {
  nextBtn.text(
  currentStageIndex === stages.length - 1 ? "Finish ◀◀" : "Next stage ▶"
  );
+ nextBtn.property(
+   "disabled",
+   (!state.revealed && currentStageIndex !== stages.length - 1) || !row
+ );
 
  if (!row) {
- titleEl.text("No data for this path (yet)");
+ titleEl.text("Pick a path to begin");
  textEl.text(
- `We don't have enough data for ${currentRegion} in ${currentYear}. Try a different year or region.`
+ `Select a region and year to start guessing.`
  );
  miniChartContainer.selectAll("*").remove();
+ guessSection.style("display", "none");
  return;
  }
  const genderLabel = currentGender === "female" ? "girl" : "boy";
@@ -194,6 +272,11 @@ function updateStageView() {
  const valOther = getMetric(row, "primary", otherGender);
 
  titleEl.text("Stage 1 · Primary School");
+ if (!state.revealed) {
+   textEl.text("Guess the enrollment % for your path to reveal the data.");
+   miniChartContainer.selectAll("*").remove();
+   return;
+ }
  if (isNumber(valSelf) && isNumber(valOther)) {
  const diff = valSelf - valOther;
  const word =
@@ -224,6 +307,11 @@ function updateStageView() {
  const valOther = getMetric(row, "secondary", otherGender);
 
  titleEl.text("Stage 2 · Secondary School");
+ if (!state.revealed) {
+   textEl.text("Guess the enrollment % for your path to reveal the data.");
+   miniChartContainer.selectAll("*").remove();
+   return;
+ }
 
  if (isNumber(valSelf) && isNumber(valOther)) {
  const diff = valSelf - valOther;
@@ -254,6 +342,11 @@ function updateStageView() {
  const valOther = getMetric(row, "tertiary", otherGender);
 
  titleEl.text("Stage 3 · Higher Education");
+ if (!state.revealed) {
+   textEl.text("Guess the enrollment % for your path to reveal the data.");
+   miniChartContainer.selectAll("*").remove();
+   return;
+ }
 
  if (isNumber(valSelf) && isNumber(valOther)) {
  const diff = valSelf - valOther;
@@ -285,6 +378,11 @@ function updateStageView() {
  const fert = getMetric(row, "fertility", "both");
 
  titleEl.text("Stage 4 · Family & Fertility");
+ if (!state.revealed) {
+   textEl.text("Guess the average births per woman to reveal the data.");
+   miniChartContainer.selectAll("*").remove();
+   return;
+ }
 
  if (isNumber(fert)) {
  textEl.text(
@@ -306,6 +404,11 @@ function updateStageView() {
  const survOther = getMetric(row, "survival65", otherGender);
 
  titleEl.text("Stage 5 · Long-term Health");
+ if (!state.revealed) {
+   textEl.text("Guess the life expectancy to reveal the data.");
+   miniChartContainer.selectAll("*").remove();
+   return;
+ }
 
  if (isNumber(leSelf) && isNumber(survSelf)) {
  let text = `By the end of the path, a typical ${genderLabel} in ${region} in ${year} can expect to live to about ${leSelf.toFixed(1)} years old. 
@@ -350,6 +453,21 @@ function getMetric(row, stageId, gender) {
 
  const colName = cols[gender];
  return row[colName];
+}
+
+function getStageActualValue(stageId, row) {
+ switch (stageId) {
+   case "primary":
+   case "secondary":
+   case "tertiary":
+     return getMetric(row, stageId, currentGender);
+   case "family":
+     return getMetric(row, "fertility", "both");
+   case "longevity":
+     return getMetric(row, "lifeexp", currentGender);
+   default:
+     return null;
+ }
 }
 
 function isNumber(v) {

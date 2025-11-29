@@ -101,6 +101,18 @@
 
         <div id="lp-stage-mini-chart" class="mini-chart"></div>
 
+        <div id="lp-guess-section" class="guess-section">
+          <label class="guess-label">
+            Make a guess: <span id="lp-guess-stage-label"></span>
+          </label>
+          <div class="guess-control">
+            <input type="range" id="lp-guess-input" min="0" max="100" step="1" />
+            <input type="number" id="lp-guess-number" min="0" max="100" step="1" />
+          </div>
+          <button type="button" id="lp-guess-submit">Submit guess</button>
+          <p id="lp-guess-feedback" class="guess-feedback"></p>
+        </div>
+
         <div class="stage-nav">
           <button type="button" id="lp-prev-stage" disabled>Back</button>
           <button type="button" id="lp-next-stage">Next stage ▶</button>
