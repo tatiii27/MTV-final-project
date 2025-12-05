@@ -14,8 +14,15 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
   const height = size;
   const radius = Math.min(width, height) / 2 - 20;
 
+  // Make sure the container has height so the SVG is visible
+  container.style.height = `${height}px`;
+
   // --- SVG + projection ---
-  const svg = d3.select("#globe").attr("viewBox", `0 0 ${width} ${height}`);
+  const svg = d3
+    .select("#globe")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`);
 
   const projection = d3.geoOrthographic()
     .scale(radius)
@@ -235,8 +242,13 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
   const height = size;
   const radius = Math.min(width, height) / 2 - 20;
 
+  // ensure visible
+  container.style.height = `${height}px`;
+
   const svg = d3
     .select("#globe-explore")
+    .attr("width", width)
+    .attr("height", height)
     .attr("viewBox", `0 0 ${width} ${height}`);
 
   const projection = d3
@@ -669,7 +681,6 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
     `;
   }
 })();
-
 
 
 
