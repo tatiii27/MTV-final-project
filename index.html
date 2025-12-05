@@ -36,17 +36,27 @@
     </div>
     <div class="page">
       <div class="hero-grid">
-        <!-- HEADER -->
+       <!-- HEADER -->
+
         <header class="header">
-          <p class="eyebrow">Global gender gaps, 1960–2020</p>
-          <h1>Unequal Worlds: Where Do Women Fall Behind?</h1>
-          <p class="subtitle">Data-storytelling across regions, decades, and lives.</p>
+
+          <p class="eyebrow">Global gender gaps, 1960-2020</p>
+
+          <h1>Unequal Worlds: Identifying the Gender Gaps in the Life Path</h1>
+
+          <p class="subtitle">
+            Where and when you're born reshapes every part of your life, from survival, to health, to schooling, and beyond.
+          </p>
+
           <p class="hook">
-            Who gains and who gets left behind when schooling, health, and opportunity shift across decades?
-            Choose a path, watch the globe react, then dig into the data yourself.
+            <strong>If you were born a girl in Sub-Saharan Africa in 1960, you had only an 11% chance of attending high school.</strong>
+            <br><br>
+            Born in Northern America the same year? Your chances jump to 80%.
+            <br><br>
+            <span class="hook-question">What would YOUR life look like if you were born somewhere else?</span>
           </p>
           <div class="cta-row">
-            <a class="cta-button" href="#life-path">Start the journey</a>
+            <a class="cta-button" href="#shock-stat">Start the journey</a>
           </div>
         </header>
       </div>
@@ -54,7 +64,21 @@
   </section>
 
 <!-- ================================
-     LIFE PATH STORY SECTION (moved up)
+     SHOCK STATISTIC SECTION
+================================= -->
+<section class="shock-stat slide" id="shock-stat">
+  <div class="page">
+    <div class="stat-card pulse">
+      <p class="stat-preface">Did you know?</p>
+      <h3 class="big-stat">130 million girls</h3>
+      <p class="stat-context">are still out of school worldwide—that's more than the entire population of Japan denied education because of their gender</p>
+      <a class="stat-continue" href="#life-path">Explore your life path →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================================
+     LIFE PATH STORY SECTION
 ================================= -->
 <section id="life-path" class="slide life-slide">
   <div class="page">
@@ -66,7 +90,7 @@
         Pick a <strong>region</strong>, <strong>year</strong>, and <strong>gender</strong> to follow a typical life path. At each stage, we show how your chances change based on the data.
       </p>
       <p class="helper-text light">
-        We simulate an “average” child born in that time/place—use the toggles to feel how context shifts the odds.
+        We simulate an "average" child born in that time/place—use the toggles to feel how context shifts the odds.
       </p>
 
       <div class="controls">
@@ -105,6 +129,10 @@
           <label class="guess-label">
             Make a guess: <span id="lp-guess-stage-label"></span>
           </label>
+
+        <div id="fertility-guess-icons" style="display:none"></div>
+
+
           <div class="guess-control">
             <input type="range" id="lp-guess-input" min="0" max="100" step="1" />
             <input type="number" id="lp-guess-number" min="0" max="100" step="1" />
@@ -121,6 +149,10 @@
       </div>
     </section>
 
+    <!-- Path Comparison Section (dynamically filled) -->
+    <section id="path-comparison" class="path-comparison-section" style="display:none;">
+    </section>
+
   </div>
   </div>
 </section>
@@ -131,7 +163,7 @@
       <div class="page">
       <header class="scrolly-header">
         <h2>Guided Scrollytelling</h2>
-        <p class="scrolly-subtitle">Scroll through this guided section to see how each region’s story shifts across decades.</p>
+        <p class="scrolly-subtitle">Scroll through this guided section to see how each region's story shifts across decades.</p>
       </header>
       <div class="graphic">
         <div id="globe-container">
@@ -143,297 +175,385 @@
 
   <div id="explore-tooltip" class="explore-tooltip"></div>
 
-      
-  <article class="step" data-step="0">
+  <article class="step region-step" data-step="0" data-region="africa">
     <h2>Africa</h2>
-    <p><strong>1960–1970:</strong> 
-<p>
-  In the 1960–1970 period across Sub-Saharan Africa, only about <strong>11%</strong> of secondary-school-age girls were enrolled
-  in secondary school, compared with roughly <strong>16%</strong> of boys. University was almost out of reach for most:
-  tertiary enrollment hovered around <strong>1%</strong> for women and <strong>2%</strong> for men. Women lived to about
-  <strong>44 years</strong> on average, just under <strong>3 years</strong> longer than men, while fertility was extremely high at
-  around <strong>6.7 births per woman</strong> and more than <strong>150 births per 1,000 teenage girls</strong>.
-</p>
-<br>
-
-<p><strong>2010–2020:</strong> 
-
-<p>
-  By 2010–2020, secondary enrollment had risen to about <strong>39%</strong> for girls and <strong>46%</strong> for boys, and tertiary
-  enrollment to roughly <strong>7.5%</strong> for women and <strong>10%</strong> for men—still a sizable gender and global gap.
-  Women’s life expectancy climbed to about <strong>61 years</strong>, about <strong>3–4 years</strong> longer than men’s, but fertility
-  remained high at around <strong>4.9 births per woman</strong> and over <strong>100 births per 1,000 teenage girls</strong>. Only a bit more
-  than <strong>half of births</strong> were attended by skilled health staff, highlighting persistent inequalities in health and
-  socio-economic conditions.
-</p>
-
-  </article>
-
-  <article class="step" data-step="1">
-    <h2>Asia</h2>
-    <p><strong>1960–1970:</strong> 
-<p>
-  In South Asia around 1960–1970, secondary education was heavily skewed toward boys: only about
-  <strong>13%</strong> of girls were in secondary school compared with more than <strong>32%</strong> of boys. At the university level, women’s
-  gross enrollment averaged under <strong>2%</strong> versus about <strong>7%</strong> for men. Women actually lived slightly shorter lives than
-  men (about <strong>44.5</strong> vs <strong>45.8</strong> years on average), while fertility was close to <strong>6 births per woman</strong> and
-  teen fertility exceeded <strong>115 births per 1,000 girls</strong>, reflecting early marriage and childbearing.
-</p>
-<br>
-
-<p><strong>2010–2020:</strong> 
-
-<p>
-  By 2010–2020, the picture had changed dramatically: secondary enrollment reached about <strong>66%</strong> for both girls and boys,
-  and the secondary gender gap nearly disappeared. Tertiary enrollment rose to roughly <strong>21%</strong> for women and
-  <strong>22%</strong> for men, narrowing the higher-education gap. Women’s life expectancy increased to about <strong>70 years</strong>,
-  now about <strong>2½ years longer</strong> than men’s, while fertility fell to around <strong>2.5 births per woman</strong> and teen fertility
-  dropped to about <strong>32 births per 1,000 girls</strong>. Still, only about <strong>62%</strong> of births were attended by skilled health staff,
-  showing ongoing inequities in maternal care.
-</p>
-
-
-  </article>
-
-  <article class="step" data-step="2">
-    <h2>Middle East & North Africa</h2>
-    <p><strong>1960–1970:</strong> 
-<p>
-  In the Middle East & North Africa during 1960–1970, secondary education was limited for everyone and especially
-  for girls: only about <strong>18%</strong> of girls were enrolled in secondary school compared with roughly <strong>35%</strong> of boys.
-  University participation stood at around <strong>4%</strong> for women versus <strong>8%</strong> for men. Women lived to about
-  <strong>50.5 years</strong> on average, about <strong>1½ years</strong> longer than men, while fertility averaged nearly
-  <strong>6.9 births per woman</strong> and teen fertility was very high at around <strong>135 births per 1,000 girls</strong>.
-</p>
-<br>
-
-<p><strong>2010–2020:</strong> 
-
-<p>
-  By 2010–2020, access to education had expanded dramatically: secondary enrollment reached about <strong>77%</strong> for girls and
-  <strong>81%</strong> for boys, and at the tertiary level women slightly <strong>outnumbered men</strong> (around <strong>38%</strong> vs <strong>37%</strong>
-  gross enrollment). Women’s life expectancy rose to about <strong>75 years</strong>, roughly <strong>3½ years</strong> longer than men’s,
-  while fertility fell to about <strong>2.9 births per woman</strong> and teen fertility to around <strong>40 births per 1,000 girls</strong>.
-  Nearly <strong>89%</strong> of births were attended by skilled health staff, signaling big improvements in maternal care even as
-  gender gaps persist in other domains.
-</p>
-
-  </article>
-
-  <article class="step" data-step="3">
-    <h2>Europe</h2>
-    <p><strong>1960–1970:</strong> 
-<p>
-  In Europe & Central Asia in the 1960–1970 period, secondary schooling was already widespread: about
-  <strong>80%</strong> of girls and <strong>83%</strong> of boys were enrolled in secondary education. At the tertiary level, women’s gross
-  enrollment averaged around <strong>24%</strong> compared with about <strong>25%</strong> for men—relatively small gaps by global standards.
-  Women lived to about <strong>71.5 years</strong> on average, roughly <strong>6½ years longer</strong> than men, with fertility around
-  <strong>2.7 births per woman</strong> and teen fertility around <strong>41 births per 1,000 girls</strong>.
-</p>
-<br>
-
-<p><strong>2010–2020:</strong> 
-
-<p>
-  By 2010–2020, Europe & Central Asia had essentially universal secondary schooling, with gross enrollment
-  above <strong>100%</strong> for both girls and boys (reflecting older students in the system). The big shift is in higher education:
-  women’s tertiary enrollment climbed to about <strong>72%</strong>, compared with roughly <strong>61%</strong> for men, putting women
-  firmly ahead in university access. Women’s life expectancy rose to about <strong>81 years</strong> versus <strong>74 years</strong> for men, keeping
-  a gender gap of roughly <strong>6½ years</strong>, while fertility declined to about <strong>1.7 births per woman</strong> and teen fertility fell
-  below <strong>20 births per 1,000 girls</strong>. Nearly all births—around <strong>99%</strong>—were attended by skilled health staff.
-</p>
-
-
-  </article>
-
-  <article class="step" data-step="4">
-    <h2>Latin America & the Caribbean</h2>
-    <p><strong>1960–1970:</strong> 
-<p>
-  In Latin America & the Caribbean in 1960–1970, only about <strong>27%</strong> of secondary-school-age girls and
-  <strong>29%</strong> of boys were in secondary school. At the tertiary level, gross enrollment averaged about <strong>5%</strong> for women
-  and <strong>9%</strong> for men. Women lived to around <strong>60.5 years</strong>, roughly <strong>4 years</strong> longer than men, while fertility was
-  high at roughly <strong>5.6 births per woman</strong> and teen fertility topped <strong>100 births per 1,000 girls</strong>.
-</p>
-<br>
-
-<p><strong>2010–2020:</strong> 
-
-<p>
-  By 2010–2020, the region had transformed its education landscape: secondary enrollment reached about
-  <strong>97%</strong> for girls versus <strong>91%</strong> for boys, and women pulled decisively ahead in higher education with
-  tertiary enrollment near <strong>54%</strong> compared to about <strong>42%</strong> for men. Women’s life expectancy rose to about
-  <strong>78 years</strong>, around <strong>6½ years</strong> longer than men’s, while fertility fell to roughly <strong>2.1 births per woman</strong>.
-  Teen fertility, though improved, remained high at about <strong>66 births per 1,000 girls</strong>. Around <strong>93%</strong> of births were
-  attended by skilled health staff, reflecting substantial but incomplete progress in health and socio-economic equity.
-</p>
-
-  </article>
-
-  <article class="step" data-step="5">
-    <h2>Northern America</h2>
-    <p><strong>1960–1970:</strong> 
-<p>
-  In North America during 1960–1970, detailed data on secondary gross enrollment are limited, but tertiary
-  education already showed a clear male advantage: university enrollment averaged about <strong>39%</strong> for women compared
-  with roughly <strong>56%</strong> for men. Women lived to about <strong>74 years</strong> on average, roughly <strong>7 years longer</strong> than men.
-  Fertility was near <strong>3 births per woman</strong>, and teen fertility was high at around <strong>69 births per 1,000 girls</strong>, reflecting
-  the post-war baby boom and limited reproductive autonomy.
-</p>
-<br>
-
-<p><strong>2010–2020:</strong> 
-
-<p>
-  By 2010–2020, secondary schooling had become nearly universal, with gross enrollment close to <strong>99%</strong> for both girls
-  and boys. The gender pattern in higher education flipped: women’s tertiary enrollment rose to about <strong>102%</strong> (gross)
-  versus roughly <strong>74%</strong> for men, meaning women are now far more likely to be in college or university. Women’s life
-  expectancy increased to about <strong>81.5 years</strong>, still about <strong>5 years</strong> longer than men’s, while fertility fell to
-  about <strong>1.8 births per woman</strong> and teen fertility dropped to around <strong>23 births per 1,000 girls</strong>. Nearly all births
-  (about <strong>99%</strong>) were attended by skilled health staff, underscoring high overall access to maternal care alongside
-  persistent gendered health risks for men.
-</p>
-
-
-  </article>
-
-  <article class="step" data-step="6">
-    <h2>Oceania</h2>
-    <p><strong>1960–1970:</strong> 
-<p>
-  In Oceania (averaging Australia and New Zealand) in 1960–1970, secondary education was already widespread:
-  roughly <strong>76%</strong> of girls and <strong>77%</strong> of boys were enrolled in secondary school. At the tertiary level, however,
-  men were much more likely to attend: women’s gross enrollment was about <strong>12%</strong> compared with about <strong>20%</strong>
-  for men. Women lived to around <strong>74 years</strong>, about <strong>6 years</strong> longer than men, while fertility averaged roughly
-  <strong>3.4 births per woman</strong> and teen fertility was about <strong>55 births per 1,000 girls</strong>.
-</p>
-<br>
-
-<p><strong>2010–2020:</strong> 
-
-<p>
-  By 2010–2020, secondary schooling reached very high levels for both genders, with gross enrollment exceeding
-  <strong>125%</strong> for girls and boys (again reflecting older students in the system). The biggest shift is in higher education:
-  women’s tertiary enrollment soared to about <strong>111%</strong>, far above men’s roughly <strong>78%</strong>, making women the clear majority
-  in university. Women’s life expectancy climbed to about <strong>84 years</strong>, about <strong>4 years</strong> longer than men, while
-  fertility fell below <strong>2 births per woman</strong> and teen fertility dropped to around <strong>17 births per 1,000 girls</strong>.
-  Almost all births—around <strong>98%</strong>—were attended by skilled health staff, reflecting strong health systems even as
-  gendered patterns in education and longevity continue to evolve.
-</p>
-
-
-  </article>
-</div>
-
-      </div> <!-- end page -->
-    </section>
-
-
-    <!-- BOTTOM: EXPLORE GLOBE -->
-    <section class="slide explore explore-slide">
-      <div class="page">
-        <h2>Explore the Data Yourself</h2>
-        <p class="explore-subtitle">
-          Choose a metric and year to see how gender gaps vary by country.
-        </p>
-
-        <div class="explore-controls">
-          <div class="control-group">
-            <label for="metric-select">Metric</label>
-            <select id="metric-select"></select>
-          </div>
-
-  <div class="control-group">
-    <label for="decade-select">
-      Decade
-    </label>
-    <select id="decade-select"></select>
-  </div>
-  <div class="control-group control-group--reset">
-    <label class="sr-only" for="explore-reset"></label>
-    <button id="explore-reset" type="button" aria-label="Reset metric and decade">Reset</button>
-  </div>
-</div>
-
-        <section id="globe-explore-section">
-          <div id="globe-explore-container">
-            <svg id="globe-explore"></svg>
-
-            <div id="legend-explore">
-              <div class="legend-title">Metric scale</div>
-              <div class="legend-bar"></div>
-              <div class="legend-labels">
-                <span id="legend-min">–</span>
-                <span id="legend-max">–</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- ⭐ NEW: country stats panel -->
-          <div id="country-stats" class="country-stats country-stats--empty">
-            <p class="country-stats-placeholder">
-              Click on a country to see its decade-average stats.
-            </p>
-          </div>
-        </section>
-      </div>
-    </section>
-
-<!-- ================================
-     SCHOOL GAP BAR CHART SECTION
-================================= -->
-<section id="school-gap-section" class="slide">
-  <div class="page">
-  <div id="viz1-container">
-    <h2>Gender Gap in Secondary School Enrollment</h2>
-
-    <p class="viz1-lede">
-      Pink bars show where girls are more enrolled than boys; blue bars show where boys are ahead.
-      Choose a decade below to compare world regions.
+    <p class="region-summary">
+      In Sub-Saharan Africa, girls started far behind boys in secondary and tertiary school, with big gaps that
+      narrowed but did not disappear by 2010–2020.
     </p>
 
-    <div class="viz1-controls">
-      <label for="decade-dropdown">Decade:</label>
-      <select id="decade-dropdown"></select>
-    </div>
-
-    <div class="legend">
-      <div class="legend-item">
-        <div class="legend-color girls"></div> Girls ahead
+    <div class="region-periods">
+      <div class="region-period" data-period="1960s">
+        <h3>1960-1970</h3>
+        <p class="period-caption">
+          Very low access to secondary and university for both genders, with boys slightly ahead.
+        </p>
+        <div class="mini-chart" id="chart-africa-1960s"></div>
       </div>
 
-      <div class="legend-item">
-        <div class="legend-color boys"></div> Boys ahead
+      <div class="region-period" data-period="2010s">
+        <h3>2010–2020</h3>
+        <p class="period-caption">
+          School access improved, but boys still keep an edge in both secondary and tertiary enrollment.
+        </p>
+        <div class="mini-chart" id="chart-africa-2010s"></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="step region-step" data-step="1" data-region="asia">
+    <h2>Asia</h2>
+   <p class="region-summary">
+      In South Asia, boys were far ahead in the 1960s. By 2010–2020, secondary gaps almost vanished, but women are
+      only slightly behind in university.
+    </p>
+
+    <div class="region-periods">
+      <div class="region-period" data-period="1960s">
+        <h3>1960-1970</h3>
+        <p class="period-caption">
+          Boys dominated secondary and especially tertiary enrollment.
+        </p>
+        <div class="mini-chart" id="chart-asia-1960s"></div>
+      </div>
+
+      <div class="region-period" data-period="2010s">
+        <h3>2010–2020</h3>
+        <p class="period-caption">
+         Secondary is almost equal; university is close but still slightly favors men.
+        </p>
+        <div class="mini-chart" id="chart-asia-2010s"></div>
       </div>
     </div>
 
-    <!-- SVG will be injected here by gender.js -->
-  </div>
+  </article>
+
+  <article class="step region-step" data-step="2" data-region="mena">
+    <h2>Middle East & North Africa</h2>
+    <p class="region-summary">
+      From low enrollment for everyone, the region moved toward high schooling with women now slightly ahead in
+      university.
+    </p>
+
+    <div class="region-periods">
+      <div class="region-period" data-period="1960s">
+        <h3>1960-1970</h3>
+        <p class="period-caption">
+          Secondary and tertiary education were limited, especially for girls.
+        </p>
+        <div class="mini-chart" id="chart-mena-1960s"></div>
+      </div>
+
+      <div class="region-period" data-period="2010s">
+        <h3>2010–2020</h3>
+        <p class="period-caption">
+         Near-parity in secondary, but girls have slightly overtaken boys in tertiary.
+        </p>
+        <div class="mini-chart" id="chart-mena-2010s"></div>
+      </div>
+    </div>
+
+  </article>
+
+  <article class="step region-step" data-step="3" data-region="europe">
+    <h2>Europe & Central Asia</h2>
+    <p class="region-summary">
+      Europe started with relatively high schooling and today reaches parity at secondary but sees girls dominate university enrollment.
+    </p>
+
+    <div class="region-periods">
+      <div class="region-period" data-period="1960s">
+        <h3>1960-1970</h3>
+        <p class="period-caption">
+         Both genders had high secondary access; tertiary was roughly equal.
+        </p>
+        <div class="mini-chart" id="chart-europe-1960s"></div>
+      </div>
+
+      <div class="region-period" data-period="2010s">
+        <h3>2010–2020</h3>
+        <p class="period-caption">
+           Secondary is at parity; girls are now the clear majority in university.
+        </p>
+        <div class="mini-chart" id="chart-europe-2010s"></div>
+      </div>
+    </div>
+
+  </article>
+
+  <article class="step region-step" data-step="4" data-region="latam">
+    <h2>Latin America & Caribbean</h2>
+    <p class="region-summary">
+      Starting from relatively equal schooling, the region now sees girls ahead in both secondary and tertiary education.
+    </p>
+
+    <div class="region-periods">
+      <div class="region-period" data-period="1960s">
+        <h3>1960-1970</h3>
+        <p class="period-caption">
+           Secondary was similar for both; boys had a small edge in tertiary.
+        </p>
+        <div class="mini-chart" id="chart-latam-1960s"></div>
+      </div>
+
+      <div class="region-period" data-period="2010s">
+        <h3>2010–2020</h3>
+        <p class="period-caption">
+          Girls overtook boys in secondary and lead significantly in tertiary.
+        </p>
+        <div class="mini-chart" id="chart-latam-2010s"></div>
+      </div>
+    </div>
+
+  </article>
+
+  <article class="step region-step" data-step="5" data-region="na">
+    <h2>North America</h2>
+    <p class="region-summary">
+      From a gap favoring men in university during the 1960s, North America now sees women dominate tertiary enrollment.
+    </p>
+
+    <div class="region-periods">
+      <div class="region-period" data-period="1960s">
+        <h3>1960-1970</h3>
+        <p class="period-caption">
+           Secondary data was limited; men heavily dominated tertiary enrollment.
+        </p>
+        <div class="mini-chart" id="chart-na-1960s"></div>
+      </div>
+
+      <div class="region-period" data-period="2010s">
+        <h3>2010–2020</h3>
+        <p class="period-caption">
+          Secondary is at parity; women now heavily outnumber men in university.
+        </p>
+        <div class="mini-chart" id="chart-na-2010s"></div>
+      </div>
+    </div>
+
+  </article>
+
+  <article class="step region-step" data-step="6" data-region="oceania">
+    <h2>Oceania</h2>
+    <p class="region-summary">
+      From equal secondary but male-dominated tertiary in the 1960s, Oceania now has the strongest female advantage in university worldwide.
+    </p>
+
+    <div class="region-periods">
+      <div class="region-period" data-period="1960s">
+        <h3>1960-1970</h3>
+        <p class="period-caption">
+           High secondary schooling for both, but men much more likely to attend university.
+        </p>
+        <div class="mini-chart" id="chart-oceania-1960s"></div>
+      </div>
+
+      <div class="region-period" data-period="2010s">
+        <h3>2010–2020</h3>
+        <p class="period-caption">
+          Secondary is very high; women become the clear majority in university.
+        </p>
+        <div class="mini-chart" id="chart-oceania-2010s"></div>
+      </div>
+    </div>
+
+
+  </article>
+</div>
+
+    </section>
+
+
+<!-- ================================
+     Animated spotlight: gender education over time
+================================ -->
+<section class="slide spotlight-animated" id="animated-spotlight">
+  <div class="page">
+    <div class="animated-card">
+      <div class="animated-header">
+        <div>
+          <p class="eyebrow">Girls vs. boys in school</p>
+          <h2>How gender gaps in secondary school shift over time and where they could go next</h2>
+          <p class="animated-lede">
+            Watch each region's girls and boys enrollment move from 1970 to today, then see a simple projection to 2025 and 2035 based on the last decade of change.
+          </p>
+        </div>
+        <div class="animated-controls">
+          <label class="control">
+            Region
+            <select id="anim-region-select"></select>
+          </label>
+          <div class="play-reset">
+            <button id="anim-toggle" type="button">Play</button>
+            <button id="anim-reset" type="button" aria-label="Reset animation to start">Reset</button>
+          </div>
+          <div class="year-pill">
+            <span id="anim-year-label">1970</span>
+            <small id="anim-year-note">projected after 2020</small>
+          </div>
+        </div>
+        <div class="animated-gap" id="anim-gap-text"></div>
+      </div>
+
+      <div id="animated-spotlight-chart"></div>
+      <p class="data-annotation">
+        Note: Gross enrollment can exceed 100% because it counts all students in secondary, including under/over-age learners and repeaters, divided by the official school-age population.
+      </p>
+      <div class="animated-meta">
+        <div>
+          <strong>Data</strong>: Secondary enrollment (gross %) by gender, region averages (World Bank). Projection uses a damped trend from the last two decades (momentum that slows over time).
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
 <!-- ================================
-     TAKEAWAY
+     Summary for schools
 ================================= -->
+<section id="dual-gap-section" class="slide">
+  <div class="page">
+    <div class="dual-gap-card">
+      <h2>A different view: 2010-2019 high school vs. university gaps by region</h2>
+      <br>
+      <p class="dual-gap-lede">
+        These charts compare how big the gender gaps are in <strong>high school (secondary)</strong>
+        and <strong>university / college (tertiary)</strong> enrollment.
+        Pink means girls are more enrolled; blue means boys are more enrolled.
+        The longer the bar, the bigger the gap. Girls are pushing boundaries in education!
+      </p>
+
+      <div class="dual-gap-grid">
+        <div class="dual-chart-panel">
+          <h3>High school (secondary)</h3>
+          <div id="dual-highschool-chart" class="dual-chart"></div>
+        </div>
+
+        <div class="dual-chart-panel">
+          <h3>University / college (tertiary)</h3>
+          <div id="dual-university-chart" class="dual-chart"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ================================
+     Explore Globe Section 
+================================= -->
+<section class="slide explore explore-splide">
+  <div class="page">
+  <h2>Explore the Data Yourself</h2>
+  <p class="explore-subtitle">
+    Choose a metric and year to see how gender gaps vary by country.
+  </p>
+
+    <div class="explore-controls">
+      <div class="control-group">
+        <label for="metric-select">Metric</label>
+        <select id="metric-select"></select>
+      </div>
+
+      <div class="control-group">
+        <label for="decade-select">Decade</label>
+        <select id="decade-select"></select>
+      </div>
+      <div class="control-group control-group--reset">
+        <label class="sr-only" for="explore-reset"></label>
+        <button id="explore-reset" type="button" aria-label="Reset metric and decade">Reset</button>
+      </div>
+    </div>
+  
+
+    <section id="globe-explore-section">
+      <div id="globe-explore-container">
+        <svg id="globe-explore"></svg>
+    
+
+        <div id="legend-explore">
+          <div class="legend-title">Metric scale</div>
+          <div class="legend-bar"></div>
+          <div class="legend-labels">
+            <span id="legend-min">--</span>
+            <span id="legend-max">--</span>
+          </div>
+        </div>
+      </div>
+
+  <div id="country-stats" class="country-stats country-stats--empty">
+    <p class="country-stats-placeholder">
+      Click on a country to see its decade-average stats.
+    </p>
+  </div>
+</section>
+</div>
+</section>
+
+<!-- ================================
+     Country Spotlight: Sideways scrollytelling
+================================= -->
+<section id="country-spotlight" class="slide">
+  <div class="page">
+    <div class="spotlight-head">
+      <div>
+        <p class="eyebrow">Your country in context</p>
+        <h2>See how your country stacks up</h2>
+        <p class="spotlight-subtitle">
+          Pick where you live; slide sideways to see how it compares against peers across different metrics.
+          We'll highlight your country on each scatter plot.
+        </p>
+        <p class="spotlight-parity-note">
+          On charts with a parity line, dots above it mean girls are ahead; below it means boys lead. As you scroll sideways, notice whether most points sit above or below the line - what pattern do you see?
+        </p>
+      </div>
+      <div class="spotlight-inputs">
+        <label for="spotlight-country">Where do you live?</label>
+        <select id="spotlight-country">
+          <option value="" disabled selected>Select a country</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="spotlight-track" id="spotlight-track" aria-live="polite">
+      <!-- cards injected by spotlight.js -->
+    </div>
+
+    <p class="spotlight-disclaimer">
+      Consider where you land on these charts. If you're in our class, you likely live in the United States - girls and boys here are far more privileged than in much of the world, and many of us would have a far lower chance of even being in this master's program elsewhere.
+    </p>
+  </div>
+</section>
+
+
+
+<!-- ================================
+     KEY TAKEAWAY SECTION - SIMPLIFIED AND POWERFUL
+================================= -->
+
 <section class="slide takeaway">
   <div class="page">
     <div class="takeaway-card">
-      <p class="takeaway-eyebrow">⭐ Key Takeaway</p>
-      <h2>Progress exists, but gender equality is uneven and fragile</h2>
-      <p class="takeaway-lede">
-        Across the gender dataset, women and girls have made enormous strides in education and health. Yet these gains are uneven, often narrow, and too easily offset by gaps in economic and political power.
-      </p>
-      <p class="takeaway-body">
-        Even in something as fundamental as schooling, many countries hit near-parity, but some still show gaps of 40+ points. Women often match or exceed men in foundational education, yet that doesn’t translate into equal opportunity later in life.
-      </p>
-      <br>
-      <ul class="takeaway-points">
-        <li>⚖️ Equality in early life does not guarantee equality across a lifetime. Women often match or outperform men in schooling, yet still face barriers in work, income, and leadership.</li>
-        <li>🌍 Progress is real, but uneven, and deeply shaped by where you are born and live. Geography is destiny: where a woman is born is one of the strongest predictors of her opportunities.</li>
-        <li>📉 Gaps can reinforce themselves unless we intervene deliberately. When women thrive, nations thrive.</li>
-      </ul>
-      <p class="takeaway-closer">
-        “We cannot all succeed when half of us are held back.”
+      <p class="takeaway-eyebrow">⭐ The One Thing to Remember</p>
+      <h2>In just 50 years, girls went from being locked out of classrooms to outperforming boys in university enrollment in half the world's regions</h2>
+      
+      <div class="takeaway-visual">
+        <div class="takeaway-stat">
+          <span class="stat-year">1960s</span>
+          <span class="stat-number">3 of 7</span>
+          <span class="stat-label">regions where girls attended university at meaningful rates</span>
+        </div>
+        <div class="takeaway-arrow">→</div>
+        <div class="takeaway-stat highlight">
+          <span class="stat-year">2020s</span>
+          <span class="stat-number">4 of 7</span>
+          <span class="stat-label">regions where girls OUTNUMBER boys in university</span>
+        </div>
+      </div>
+      
+      <p class="takeaway-impact">
+        This isn't just progress—it's the fastest educational revolution in human history.
+        <br><strong>But if you were born in the wrong place, you missed it entirely.</strong>
       </p>
     </div>
   </div>
@@ -448,8 +568,12 @@
 <script src="https://unpkg.com/topojson-client@3"></script>
 
 <script src="global.js"></script>
+<script type="module" src="animated_spotlight.js"></script>
+<script type="module" src="storyChart.js"></script>
 <script type="module" src="life.js"></script>
 <script type="module" src="gender.js"></script>
+<script type="module" src="dualChart.js"></script>
+<script type="module" src="spotlight.js"></script>
 
 </body>
 
