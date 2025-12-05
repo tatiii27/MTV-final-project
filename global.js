@@ -1,5 +1,6 @@
 // global.js
-const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
+const WORLD_URL =
+  "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 /* =======================================
  * PART A — SCROLL-PROGRESS DRIVEN GLOBE
@@ -17,7 +18,8 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
   // --- SVG + projection ---
   const svg = d3.select("#globe").attr("viewBox", `0 0 ${width} ${height}`);
 
-  const projection = d3.geoOrthographic()
+  const projection = d3
+    .geoOrthographic()
     .scale(radius)
     .translate([width / 2, height / 2])
     .clipAngle(90);
@@ -29,12 +31,14 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
   projection.rotate(rotation);
 
   // --- Layers ---
-  svg.append("path")
+  svg
+    .append("path")
     .datum({ type: "Sphere" })
     .attr("class", "water")
     .attr("d", path);
 
-  svg.append("path")
+  svg
+    .append("path")
     .datum(graticule())
     .attr("class", "graticule")
     .attr("d", path);
@@ -43,7 +47,8 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
   const annotationGroup = svg.append("g").attr("id", "annotation-group");
 
   /* -------------------------------------
-   * REGION KEYFRAMES
+   * REGION KEYFRAMES (ORDER DOESN'T NEED
+   * TO MATCH YOUR CARDS ANYMORE)
    * -------------------------------------*/
   const keyframes = [
     { name: "Africa", coords: [20, 5] },
@@ -52,57 +57,24 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
     { name: "Europe", coords: [15, 50] },
     { name: "Latin America & the Caribbean", coords: [-70, -10] },
     { name: "Northern America", coords: [-100, 40] },
-    { name: "Oceania", coords: [140, -25] }
+    { name: "Oceania", coords: [140, -25] },
   ];
 
-  // quick lookup by name
-  const keyframeByName = new Map(
-    keyframes.map(k => [k.name.toLowerCase(), k])
-  );
-
-  // Given some text from a step, decide which keyframe it should control
-  function inferKeyframeFromText(rawText) {
-    if (!rawText) return null;
-    const t = rawText.toLowerCase();
-
-    // exact name appears in the text
-    for (const k of keyframes) {
-      if (t.includes(k.name.toLowerCase())) return k;
-    }
-
-    // looser matching for titles like "Europe & Central Asia"
-    if (t.includes("middle east")) {
-      return keyframeByName.get("middle east & north africa");
-    }
-    if (t.includes("north africa") && !t.includes("middle east")) {
-      return keyframeByName.get("africa");
-    }
-    if (t.includes("latin america") || t.includes("caribbean")) {
-      return keyframeByName.get("latin america & the caribbean");
-    }
-    if (t.includes("europe")) {
-      return keyframeByName.get("europe");
-    }
-    if (t.includes("northern america") || t.includes("north america")) {
-      return keyframeByName.get("northern america");
-    }
-    if (t.includes("oceania") || t.includes("australia")) {
-      return keyframeByName.get("oceania");
-    }
-    if (t.includes("asia")) {
-      return keyframeByName.get("asia");
-    }
-    if (t.includes("africa")) {
-      return keyframeByName.get("africa");
-    }
-
-    return null;
-  }
+  // Map your data-region values → index into keyframes
+  const regionToKeyframeIndex = {
+    africa: 0,
+    asia: 1,
+    mena: 2,
+    europe: 3,
+    latam: 4,
+    na: 5,
+    oceania: 6,
+  };
 
   let countries = [];
 
   // --- Load world map ---
-  d3.json(WORLD_URL).then(world => {
+  d3.json(WORLD_URL).then((world) => {
     countries = topojson.feature(world, world.objects.countries).features;
     countriesLayer
       .selectAll("path")
@@ -138,7 +110,8 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
 
   function addDrag() {
     svg.call(
-      d3.drag()
+      d3
+        .drag()
         .on("start", (event) => {
           isDragging = true;
           lastDrag = [event.x, event.y];
@@ -148,46 +121,24 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
           const dx = event.x - lastDrag[0];
           const dy = event.y - lastDrag[1];
 
-          rotation = [
-            lastRot[0] + dx * 0.4,
-            lastRot[1] - dy * 0.4
-          ];
+          rotation = [lastRot[0] + dx * 0.4, lastRot[1] - dy * 0.4];
 
           projection.rotate(rotation);
           render();
         })
-        .on("end", () => { isDragging = false; })
+        .on("end", () => {
+          isDragging = false;
+        })
     );
   }
 
   /* -------------------------------------
-   * SCROLLPROGRESS → ROTATION (TEXT-BASED)
+   * SCROLLPROGRESS → ROTATION (data-region)
    * -------------------------------------*/
   function setupScrollProgress() {
-    const steps = Array.from(document.querySelectorAll(".step"));
+    // ONLY use your region cards, not any other .step in the page
+    const steps = Array.from(document.querySelectorAll(".region-step"));
     if (!steps.length) return;
-
-    // For each step, decide which keyframe (if any) it controls.
-    // Priority:
-    // 1. data-region attribute
-    // 2. heading text inside the step
-    // 3. full step text
-    const framesForSteps = steps.map(step => {
-      // 1) explicit data-region
-      let regionText = step.dataset && step.dataset.region;
-      if (!regionText) {
-        // 2) a heading inside the card
-        const heading = step.querySelector(
-          "h1, h2, h3, .region-title, .card-title, .card-heading"
-        );
-        regionText = heading ? heading.textContent : "";
-      }
-      if (!regionText) {
-        // 3) fall back to all text in the step
-        regionText = step.textContent || "";
-      }
-      return inferKeyframeFromText(regionText);
-    });
 
     let activeIndex = 0;
 
@@ -196,7 +147,7 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
 
       const viewportCenter = window.innerHeight * 0.5;
 
-      // Find the .step whose center is closest to the viewport center
+      // Find the .region-step whose center is closest to the viewport center
       let idx = 0;
       let minDist = Infinity;
 
@@ -210,11 +161,11 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
         }
       });
 
-      const frame = framesForSteps[idx];
-      if (!frame) {
-        // this step is not tied to a region; leave globe where it was
-        return;
-      }
+      const regionKey = steps[idx].dataset.region;
+      const kIdx = regionToKeyframeIndex[regionKey];
+      const frame = keyframes[kIdx];
+
+      if (!frame) return;
 
       // Snap globe rotation directly to the active region
       rotation = [-frame.coords[0], -frame.coords[1]];
@@ -231,18 +182,17 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
       }
     });
 
-    // Initial annotation: first step that actually maps to a region
-    const initialFrame =
-      framesForSteps.find(f => f != null) || keyframes[0];
+    // Initial state: first region card
+    const firstRegion = steps[0].dataset.region;
+    const firstIdx = regionToKeyframeIndex[firstRegion];
+    const firstFrame = keyframes[firstIdx];
 
-    rotation = [-initialFrame.coords[0], -initialFrame.coords[1]];
-    projection.rotate(rotation);
-    annotationGroup.datum(initialFrame);
-    render();
-
-    const initialIndex = framesForSteps.findIndex(f => f != null);
-    if (initialIndex >= 0 && steps[initialIndex]) {
-      steps[initialIndex].classList.add("is-active");
+    if (firstFrame) {
+      rotation = [-firstFrame.coords[0], -firstFrame.coords[1]];
+      projection.rotate(rotation);
+      annotationGroup.datum(firstFrame);
+      render();
+      steps[0].classList.add("is-active");
     }
   }
 
@@ -296,7 +246,6 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
 
 /* =======================================
  * PART B: EXPLORE GLOBE (BOTTOM)
- * (unchanged from your partner's working version)
  * =====================================*/
 (function exploreGlobe() {
   const container = document.getElementById("globe-explore-container");
@@ -328,12 +277,14 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
   let lastRotation = null;
 
   // Background
-  svg.append("path")
+  svg
+    .append("path")
     .datum({ type: "Sphere" })
     .attr("class", "water")
     .attr("d", path);
 
-  svg.append("path")
+  svg
+    .append("path")
     .datum(graticule())
     .attr("class", "graticule")
     .attr("d", path);
@@ -341,6 +292,7 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
   const countriesLayer = svg.append("g").attr("id", "explore-countries");
   const tooltip = document.getElementById("explore-tooltip");
 
+  // Controls & legend
   const metricSelect = document.getElementById("metric-select");
   const decadeSelect = document.getElementById("decade-select");
   const exploreReset = document.getElementById("explore-reset");
@@ -364,18 +316,20 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
     return;
   }
 
+  // Color scale
   const elegantInterpolator = (t) =>
     d3.interpolateRgbBasis(["#f28e84", "#f2d675", "#18a6a6"])(t);
 
   const colorScale = d3.scaleSequential(elegantInterpolator);
 
   let countries = [];
-  let dataByNameDecade = null;
+  let dataByNameDecade = null; // keyed by Country Name
   let metricColumns = [];
   let decades = [];
   let currentMetric = null;
   let currentDecade = null;
 
+  // Map year -> decade label like "1970-1979"
   function decadeLabelFromYear(year) {
     if (year == null || isNaN(year)) return null;
     if (year < 1970) return null;
@@ -384,7 +338,9 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
     return `${start}-${end}`;
   }
 
-  d3.json(WORLD_URL)
+  // 1️⃣ Load world map first
+  d3
+    .json(WORLD_URL)
     .then((world) => {
       countries = topojson.feature(world, world.objects.countries).features;
 
@@ -399,7 +355,7 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
         .attr("stroke-width", 0.3)
         .on("click", (event, d) => onCountryClick(d))
         .on("mousemove", (event, d) => {
-          if (!tooltip) return;
+          if (!tooltip || !currentMetric || !currentDecade) return;
           const name = d.properties && d.properties.name;
           const v = getValue(name, currentDecade, currentMetric);
 
@@ -409,7 +365,7 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
 
           tooltip.innerHTML = `
             <strong>${name}</strong><br>
-            ${prettyMetricLabel(currentMetric || "")}:<br>
+            ${prettyMetricLabel(currentMetric)}:<br>
             <strong>${v == null ? "No data" : d3.format(".2f")(v)}</strong>
           `;
         })
@@ -424,12 +380,12 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
 
       loadGenderData();
     })
-    .catch((err) =>
-      console.error("Explore globe world load error:", err)
-    );
+    .catch((err) => console.error("Explore globe world load error:", err));
 
+  // 2️⃣ Load gender data
   function loadGenderData() {
-    d3.csv("data/gender.csv", d3.autoType)
+    d3
+      .csv("data/gender.csv", d3.autoType)
       .then((data) => {
         const filtered = data
           .map((d) => {
@@ -458,16 +414,16 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
           "average_value_School enrollment, tertiary, female (% gross)",
           "average_value_School enrollment, tertiary, male (% gross)",
           "average_value_Survival to age 65, female (% of cohort)",
-          "average_value_Survival to age 65, male (% of cohort)"
+          "average_value_Survival to age 65, male (% of cohort)",
         ]);
 
         metricColumns = data.columns.filter((c) => allowed.has(c));
 
         const preferredMetric =
           metricColumns.find((c) =>
-            c.toLowerCase().includes(
-              "life expectancy at birth, female (years)"
-            )
+            c
+              .toLowerCase()
+              .includes("life expectancy at birth, female (years)")
           ) || metricColumns[0];
 
         currentMetric = null;
@@ -475,8 +431,7 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
         decades = Array.from(new Set(filtered.map((d) => d.Decade)))
           .filter((dec) => !dec.startsWith("2020"))
           .sort(
-            (a, b) =>
-              parseInt(a.split("-")[0]) - parseInt(b.split("-")[0])
+            (a, b) => parseInt(a.split("-")[0]) - parseInt(b.split("-")[0])
           );
 
         currentDecade = null;
@@ -491,6 +446,7 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
 
   function setupControls() {
     metricSelect.innerHTML = "";
+    // placeholder for metric
     const metricPlaceholder = document.createElement("option");
     metricPlaceholder.value = "";
     metricPlaceholder.disabled = true;
@@ -539,7 +495,10 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
       decadeSelect.value = "";
       currentMetric = null;
       currentDecade = null;
-      clearCountryStats(true, "Select a country to see its decade-average stats.");
+      clearCountryStats(
+        true,
+        "Select a metric, decade, and country to see its stats."
+      );
       countriesLayer.selectAll("path.country").attr("fill", "#444f7a");
       if (legendMin && legendMax) {
         legendMin.textContent = "–";
@@ -605,6 +564,7 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
     countriesLayer.selectAll("path.country").attr("d", path);
   }
 
+  // Get metric value for a given country and decade
   function getValue(countryName, decade, metric) {
     if (!dataByNameDecade || !decade || !metric) return null;
     const byDec = dataByNameDecade.get(countryName);
@@ -635,13 +595,11 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
     const extent = d3.extent(vals);
     colorScale.domain(extent);
 
-    countriesLayer
-      .selectAll("path.country")
-      .attr("fill", d => {
-        const name = d.properties && d.properties.name;
-        const v = getValue(name, currentDecade, currentMetric);
-        return v == null ? "#444f7a" : colorScale(v);
-      });
+    countriesLayer.selectAll("path.country").attr("fill", (d) => {
+      const name = d.properties && d.properties.name;
+      const v = getValue(name, currentDecade, currentMetric);
+      return v == null ? "#444f7a" : colorScale(v);
+    });
 
     const fmt = d3.format(".2f");
     legendMin.textContent = fmt(extent[0]);
@@ -661,6 +619,7 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
     render();
   }
 
+  // Click handler for showing stats
   function onCountryClick(feature) {
     const name =
       feature.properties && feature.properties.name
@@ -669,7 +628,10 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
 
     const byDec = dataByNameDecade && dataByNameDecade.get(name);
     if (!byDec || !currentDecade) {
-      clearCountryStats(true, `No data for ${name} in ${currentDecade || "this decade"}.`);
+      clearCountryStats(
+        true,
+        `No data for ${name} in ${currentDecade || "this decade"}.`
+      );
       return;
     }
 
@@ -714,9 +676,7 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
 
       <div class="country-stats-value-row">
         <span class="country-stats-label">Range:</span>
-        <span class="country-stats-value">${fmt(min)} – ${fmt(
-      max
-    )}</span>
+        <span class="country-stats-value">${fmt(min)} – ${fmt(max)}</span>
       </div>
     `;
   }
