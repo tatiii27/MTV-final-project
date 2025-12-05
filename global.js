@@ -145,40 +145,16 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
     );
   }
 
-  /* -------------------------------------
-   * SCROLLPROGRESS → ROTATION (ROBUST)
+    /* -------------------------------------
+   * SCROLLPROGRESS → ROTATION
    * -------------------------------------*/
   function setupScrollProgress() {
-    const steps = Array.from(document.querySelectorAll(".step"));
-    if (!steps.length) return;
-
-    // For each .step, decide which region it controls.
-    // Priority:
-    // 1) data-region attribute
-    // 2) text-match on the card content
-    // 3) (fallback) index-based (old behavior)
-    const framesForSteps = steps.map((step, idx) => {
-      // 1) data-region, if present
-      const dataRegion = step.dataset && step.dataset.region;
-      if (dataRegion) {
-        const key = dataRegion.toLowerCase();
-        // exact
-        if (keyframeByName.has(key)) return keyframeByName.get(key);
-        // loose match
-        const approx = findKeyframeByApproxName(dataRegion);
-        if (approx) return approx;
-      }
-
-      // 2) Try to infer from visible text
-      const text = step.textContent || "";
-      const inferred = findKeyframeByApproxName(text);
-      if (inferred) return inferred;
-
-      // 3) Fallback to index-based, if in range
-      return keyframes[idx] || null;
-    });
-
+    // Only treat cards with .step-region as scrolly steps
+    // (add class="step step-region" on your 4 region cards)
+    const steps = Array.from(document.querySelectorAll(".step.step-region"));
     let activeIndex = 0;
+
+    if (!steps.length) return; // nothing to sync with
 
     window.addEventListener("scroll", () => {
       if (isDragging) return; // dragging overrides scroll
@@ -199,10 +175,18 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
         }
       });
 
-      const frame = framesForSteps[idx];
-      if (!frame) return; // this step isn't tied to a region
+      // Map step index → keyframe index explicitly
+      // (order these to match your region cards)
+      const stepToKeyframeIndex = [
+        2, // card 0 → "Middle East & North Africa"
+        3, // card 1 → "Europe"
+        4, // card 2 → "Latin America & the Caribbean"
+        5  // card 3 → "Northern America"
+      ];
 
-      // Snap globe rotation directly to the active region
+      const kIdx = stepToKeyframeIndex[idx] ?? stepToKeyframeIndex[0];
+      const frame = keyframes[kIdx];
+
       rotation = [-frame.coords[0], -frame.coords[1]];
       projection.rotate(rotation);
 
@@ -211,9 +195,21 @@ const WORLD_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.jso
 
       if (idx !== activeIndex) {
         activeIndex = idx;
-        steps.forEach((step, i) => step.classList.toggle("is-active", i === idx));
+        steps.forEach((step, i) =>
+          step.classList.toggle("is-active", i === idx)
+        );
       }
     });
+
+    // initial annotation: first card
+    const initialFrame = keyframes[stepToKeyframeIndex[0]];
+    rotation = [-initialFrame.coords[0], -initialFrame.coords[1]];
+    projection.rotate(rotation);
+    annotationGroup.datum(initialFrame);
+    render();
+
+    steps[0].classList.add("is-active");
+  }
 
     // Initial annotation: first step that actually has a frame
     const initialFrame =
