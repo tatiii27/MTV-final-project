@@ -37,6 +37,7 @@ const stages = [
 ];
 
 
+
 let allData = [];
 let currentRegion = null;
 let currentYear = null;
@@ -60,6 +61,8 @@ const guessNumber = d3.select("#lp-guess-number");
 const guessSubmit = d3.select("#lp-guess-submit");
 const guessFeedback = d3.select("#lp-guess-feedback");
 const guessStageLabel = d3.select("#lp-guess-stage-label");
+const fertilityGuessIcons = d3.select("#fertility-guess-icons");
+const MAX_BABIES = 10;
 
 
 d3.csv("data/gender_regions_decades.csv", d3.autoType).then((data) => {
@@ -186,11 +189,63 @@ guessSubmit.on("click", () => {
    if (!isNumber(guessVal)) return;
 
    const diff = Math.abs(guessVal - actual);
-   const feedbackText = `You guessed ${guessVal.toFixed(1)}. Actual is ${actual.toFixed(1)}. You were off by ${diff.toFixed(1)}.`;
-   guessFeedback.text(feedbackText);
+   
+   // Enhanced emotional feedback
+   let feedbackText = "";
+   let isSuprising = false;
+   
+   if (diff > 30) {
+     feedbackText = `🤯 Wow! You were off by ${diff.toFixed(0)} percentage points! `;
+     feedbackText += actual > guessVal ? 
+       `Reality is much better than you thought! The actual value is ${actual.toFixed(1)}%.` : 
+       `The situation is worse than you imagined. The actual value is ${actual.toFixed(1)}%.`;
+     isSuprising = true;
+   } else if (diff < 5) {
+     feedbackText = `🎯 Incredible! You were only ${diff.toFixed(0)} points off! The actual value is ${actual.toFixed(1)}%.`;
+   } else if (diff < 15) {
+     feedbackText = `Good estimate! You were ${diff.toFixed(0)} points off. The actual value is ${actual.toFixed(1)}%.`;
+   } else {
+     feedbackText = `You guessed ${guessVal.toFixed(0)}%, but the actual value is ${actual.toFixed(1)}%. That's a ${diff.toFixed(0)} point difference!`;
+   }
+   
+   // Add context for emotional impact based on stage
+   if (stage.id === "tertiary" && currentGender === "female") {
+     const maleVal = getMetric(row, "tertiary", "male");
+     if (actual > maleVal && actual > 50) {
+       feedbackText += ` <strong>💪 Girls are now the MAJORITY in universities here!</strong>`;
+       isSuprising = true;
+     } else if (actual < maleVal && diff > 20) {
+       feedbackText += ` <strong>There's still a significant gender gap favoring boys in higher education.</strong>`;
+     }
+   }
+   
+   if (stage.id === "secondary" && actual < 20) {
+     feedbackText += ` <strong>😔 Less than 1 in 5 children attend secondary school here.</strong>`;
+     isSuprising = true;
+   }
+   
+   if (stage.id === "longevity" && actual < 60) {
+     feedbackText += ` <strong>Life expectancy here is below 60 years - that's 20+ years less than developed countries.</strong>`;
+     isSuprising = true;
+   }
+   
+   // Apply the feedback with animation
+   guessFeedback
+     .html(feedbackText)
+     .classed("surprise", isSuprising)
+     .style("opacity", 0)
+     .transition()
+     .duration(300)
+     .style("opacity", 1);
 
    stageState[stage.id] = { revealed: true, guess: guessVal, feedback: feedbackText };
    nextBtn.property("disabled", currentStageIndex === stages.length - 1 ? false : false);
+   
+   // Show comparison after the last stage
+   if (currentStageIndex === stages.length - 1) {
+     setTimeout(() => showPathComparison(), 1000);
+   }
+   
    updateStageView();
  });
 }
@@ -231,32 +286,73 @@ function getCurrentRow() {
 }
 
 function setGuessUI(stageId) {
- const ranges = {
-   primary: { min: 0, max: 100, step: 1, label: "Enrollment %" },
-   secondary: { min: 0, max: 100, step: 1, label: "Enrollment %" },
-   tertiary: { min: 0, max: 100, step: 1, label: "Enrollment %" },
-   fertility: { min: 0, max: 15, step: 0.1, label: "Births per woman" },
-   longevity: { min: 40, max: 90, step: 0.5, label: "Life expectancy (years)" },
- };
- const r = ranges[stageId] || { min: 0, max: 100, step: 1, label: "" };
- guessInput.attr("min", r.min).attr("max", r.max).attr("step", r.step);
- guessNumber.attr("min", r.min).attr("max", r.max).attr("step", r.step);
- const preset = stageState[stageId]?.guess;
- const startVal = isNumber(preset) ? preset : (r.min + r.max) / 2;
- guessInput.property("value", startVal);
- guessNumber.property("value", startVal);
- guessStageLabel.text(r.label);
- guessFeedback.text(stageState[stageId]?.feedback || "");
+  // ---------- FIRST: Handle fertility UI BEFORE anything else ----------
+  if (stageId === "family") {
+    // Hide slider + number input
+    guessInput.style("display", "none");
+    guessNumber.style("display", "none");
 
- const accent =
-   currentGender === "male"
-     ? "#7d8dff"
-     : currentGender === "female"
-     ? "#ff8fc2"
-     : "#4a5368";
- guessInput.style("accent-color", accent);
- guessNumber.style("border-color", accent);
+    // Clear slider values to prevent visual ghosting
+    guessInput.property("value", "");
+    guessNumber.property("value", "");
+
+    // Show fertility baby selector
+    fertilityGuessIcons.style("display", "flex");
+
+    // Update feedback label
+    guessStageLabel.text("Births per woman");
+
+    buildFertilityGuessIcons(stageId);
+    return;  // 🔥 STOP HERE — do NOT run slider logic
+  }
+
+  // ---------- OTHER STAGES USE SLIDER ----------
+  fertilityGuessIcons.style("display", "none");  // hide the baby selector
+  guessInput.style("display", null);
+  guessNumber.style("display", null);
+
+  // Normal slider setup
+  const ranges = {
+    primary: { min: 0, max: 100, step: 1, label: "Enrollment %" },
+    secondary: { min: 0, max: 100, step: 1, label: "Enrollment %" },
+    tertiary: { min: 0, max: 100, step: 1, label: "Enrollment %" },
+    fertility: { min: 0, max: 15, step: 0.1, label: "Births per woman" },
+    longevity: { min: 40, max: 90, step: 0.5, label: "Life expectancy (years)" },
+  };
+
+  const r = ranges[stageId] || { min: 0, max: 100, step: 1.0, label: "" };
+
+  guessInput
+    .attr("min", r.min)
+    .attr("max", r.max)
+    .attr("step", r.step);
+
+  guessNumber
+    .attr("min", r.min)
+    .attr("max", r.max)
+    .attr("step", r.step);
+
+  const preset = stageState[stageId]?.guess;
+  const startVal = isNumber(preset) ? preset : (r.min + r.max) / 2;
+
+  guessInput.property("value", startVal);
+  guessNumber.property("value", startVal);
+
+  guessStageLabel.text(r.label);
+  guessFeedback.text(stageState[stageId]?.feedback || "");
+
+  const accent =
+    currentGender === "male"
+      ? "#7d8dff"
+      : currentGender === "female"
+      ? "#ff8fc2"
+      : "#4a5368";
+
+  guessInput.style("accent-color", accent);
+  guessNumber.style("border-color", accent);
 }
+
+
 
 guessInput.on("input", function () {
  guessNumber.property("value", this.value);
@@ -266,6 +362,41 @@ guessNumber.on("input", function () {
  guessInput.property("value", this.value);
 });
 
+function buildFertilityGuessIcons(stageId) {
+  fertilityGuessIcons.selectAll("*").remove();
+
+  const currentVal = stageState[stageId]?.guess ?? 0;
+
+  const babies = d3.range(MAX_BABIES).map(i => ({
+    index: i,
+    active: i < currentVal
+  }));
+
+  fertilityGuessIcons
+    .selectAll("span.baby-icon")
+    .data(babies)
+    .join("span")
+    .attr("class", "baby-icon")
+    .classed("active", d => d.active)
+    .html("👶")
+    .on("click", (event, d) => {
+      const selected = d.index + 1;
+
+      // Update UI state
+      fertilityGuessIcons
+        .selectAll("span.baby-icon")
+        .classed("active", b => b.index < selected);
+
+      // Sync with existing guess system
+      guessInput.property("value", selected);
+      guessNumber.property("value", selected);
+
+      stageState["fertility"].guess = selected;  
+
+      // Live preview feedback text
+      guessFeedback.text(`Selected: ${selected} children`);
+    });
+}
 
 
 function updateStageView() {
@@ -273,6 +404,7 @@ function updateStageView() {
  const hasSelection = currentRegion && currentYear && currentGender;
  const row = hasSelection ? getCurrentRow() : null;
  const state = stageState[stage.id] || { revealed: false, feedback: "" };
+ const guessVal = state.guess;
  if (hasSelection && row) {
    setGuessUI(stage.id);
  }
@@ -337,10 +469,11 @@ if (!row) {
  That’s ${word} than ${otherGender === "female" ? "girls" : "boys"}, who are at ${valOther.toFixed(1)}%.`
  );
  drawMiniBarChart({
- title: "Primary school enrollment",
- row,
- stageId: "primary",
- unit: "%",
+   title: "Primary school enrollment",
+   row,
+   stageId: "primary",
+   unit: "%",
+   guess: guessVal,
  });
  } else {
  textEl.text(
@@ -372,10 +505,11 @@ if (!row) {
  That gives you ${word} of staying in school compared to ${otherGender === "female" ? "girls" : "boys"} (${valOther.toFixed(1)}%).`
  );
  drawMiniBarChart({
- title: "Secondary school enrollment",
- row,
- stageId: "secondary",
- unit: "%",
+   title: "Secondary school enrollment",
+   row,
+   stageId: "secondary",
+   unit: "%",
+   guess: guessVal,
  });
  } else {
  textEl.text(
@@ -409,10 +543,11 @@ if (!row) {
  );
  
  drawMiniBarChart({
- title: "Tertiary enrollment",
- row,
- stageId: "tertiary",
- unit: "%",
+   title: "Tertiary enrollment",
+   row,
+   stageId: "tertiary",
+   unit: "%",
+   guess: guessVal,
  });
  } else {
  textEl.text(
@@ -432,11 +567,11 @@ if (!row) {
 
  if (isNumber(fert)) {
  textEl.text(
- `In ${region} in ${year}, families have about ${fert.toFixed(1)} children on average. 
- This statistic is measured per woman, but it shapes daily life for everyone—how many siblings you might have, 
- how soon people start families, and how easy it is to stay in school or work.`
- );
- drawFertilityChart(fert);
+`In ${region} in ${year}, families have about ${fert.toFixed(1)} children on average. 
+This statistic is measured per woman, but it shapes daily life for everyone-how many siblings you might have, 
+how soon people start families, and how easy it is to stay in school or work.`
+);
+drawFertilityChart({ fert, guess: guessVal });
  } else {
  textEl.text(
  `We don’t have solid fertility data for this path, so we skip this part of the story.`
@@ -476,7 +611,7 @@ if (!row) {
 } 
 
 textEl.text(text);
- drawLongevityChart({ leSelf, leOther, survSelf, survOther, gender: currentGender });
+drawLongevityChart({ leSelf, leOther, survSelf, survOther, gender: currentGender, guess: guessVal });
  } else {
  textEl.text(
  `Health and survival data aren’t available here, so we can’t close the story with life expectancy for this path.`
@@ -521,162 +656,248 @@ function isNumber(v) {
 }
 
 
-function drawMiniBarChart({ title, row, stageId, unit }) {
- miniChartContainer.selectAll("*").remove();
+function drawMiniBarChart({ title, row, stageId, unit, guess }) {
+  miniChartContainer.selectAll("*").remove();
 
- const valFemale = getMetric(row, stageId, "female");
- const valMale = getMetric(row, stageId, "male");
+  const valFemale = getMetric(row, stageId, "female");
+  const valMale = getMetric(row, stageId, "male");
 
- if (!isNumber(valFemale) || !isNumber(valMale)) {
- return;
- }
- 
- const selfLabel = currentGender === "female" ? "Girls" : "Boys";
- const otherLabel = currentGender === "female" ? "Boys" : "Girls";
-const selfColor = currentGender === "male" ? "#7e9cff" : "#ff8cbc";
-const otherColor = currentGender === "male" ? "#ff8cbc" : "#7e9cff";
-const data = [
-  { gender: selfLabel, value: selfLabel === "Girls" ? valFemale : valMale },
-  { gender: otherLabel, value: otherLabel === "Girls" ? valFemale : valMale },
-];
+  if (!isNumber(valFemale) || !isNumber(valMale)) return;
 
-const containerWidth = miniChartContainer.node()
-  ? miniChartContainer.node().getBoundingClientRect().width
-  : 700;
-const width = Math.max(700, containerWidth);
-const height = 180;
-const margin = { top: 16, right: 25, bottom: 16, left: 50 };
+  const selfLabel = currentGender === "female" ? "Girls" : "Boys";
+  const otherLabel = currentGender === "female" ? "Boys" : "Girls";
+  const girlColor = "#ff8cbc";
+  const boyColor = "#7e9cff";
+  const guessColor = "#f7e8a4";
+  const guessVal = isNumber(guess) ? guess : null;
 
-const svg = miniChartContainer
-.append("svg")
-.attr("width", "100%")
-.attr("height", height)
-.attr("viewBox", `0 0 ${width} ${height}`);
+  let data = [
+    {
+      label: selfLabel,
+      value: selfLabel === "Girls" ? valFemale : valMale,
+      type: "self",
+    },
+    {
+      label: otherLabel,
+      value: otherLabel === "Girls" ? valFemale : valMale,
+      type: "other",
+    },
+  ];
 
-const x = d3
-.scaleLinear()
-.domain([0, d3.max(data, (d) => d.value) || 1])
-.nice()
- .range([margin.left, width - margin.right]);
+  // 🔥 ALWAYS push guess LAST to ensure it draws on top
+  if (isNumber(guessVal)) {
+    data.push({
+      label: "Your guess",
+      value: guessVal,
+      type: "guess",
+    });
+  }
 
- const y = d3
- .scaleBand()
- .domain(data.map((d) => d.gender))
- .range([margin.top, height - margin.bottom])
- .padding(0.3);
- svg
- .append("text")
- .attr("x", margin.left)
- .attr("y", 12)
- .attr("fill", "#555")
- .attr("font-size", 11)
- .text(title);
+  // --------------------------- -
+  // SVG Setup
+  // -----------------------------
+  const containerWidth = miniChartContainer.node()
+    ? miniChartContainer.node().getBoundingClientRect().width
+    : 700;
 
- svg
- .selectAll("rect.bar")
- .data(data)
- .join("rect")
- .attr("class", "bar")
- .attr("x", x(0))
- .attr("y", (d) => y(d.gender))
- .attr("height", y.bandwidth())
- .attr("width", 0)
- .attr("rx", 6)
- .attr("fill", (d) => (d.gender === selfLabel ? selfColor : otherColor))
- .transition()
- .duration(700)
- .attr("width", (d) => x(d.value) - x(0));
- svg
- .selectAll("text.value-label")
- .data(data)
- .join("text")
- .attr("class", "value-label")
- .attr("x", (d) => x(d.value) + 4)
- .attr("y", (d) => y(d.gender) + y.bandwidth() / 2 + 4)
- .attr("font-size", 11)
- .attr("fill", "#444")
- .text((d) => `${d.value.toFixed(1)}${unit}`);
+  const width = Math.max(700, containerWidth);
+  const height = 180;
+  const margin = { top: 16, right: 25, bottom: 16, left: 50 };
 
- const yAxis = d3.axisLeft(y).tickSize(0);
- svg
- .append("g")
- .attr("transform", `translate(${margin.left},0)`)
- .call(yAxis)
- .call((g) => g.selectAll("text").attr("font-size", 11))
- .call((g) => g.select(".domain").remove());
+  const svg = miniChartContainer
+    .append("svg")
+    .attr("width", "100%")
+    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`);
+
+  // -----------------------------
+  // Scales
+  // -----------------------------
+  const maxDomain = d3.max(data.map(d => d.value).filter(isNumber)) || 1;
+
+  const x = d3.scaleLinear()
+    .domain([0, maxDomain])
+    .nice()
+    .range([margin.left, width - margin.right]);
+
+  const y = d3.scaleBand()
+    .domain(data.map((d) => d.label))
+    .range([margin.top, height - margin.bottom])
+    .padding(0.3);
+
+  svg.append("text")
+    .attr("x", margin.left)
+    .attr("y", 12)
+    .attr("fill", "#555")
+    .attr("font-size", 11)
+    .text(title);
+
+  const barHeight = y.bandwidth() * 0.62;
+  const barYOffset = y.bandwidth() * 0.19;
+
+  // -----------------------------
+  // Color logic based only on type
+  // -----------------------------
+  function barColor(d) {
+    if (d.type === "guess") return guessColor;
+    if (d.type === "self") return selfLabel === "Girls" ? girlColor : boyColor;
+    if (d.type === "other") return selfLabel === "Girls" ? boyColor : girlColor;
+    return "#ccc";
+  }
+
+  // -----------------------------
+  // Bars (drawn in order; guess last)
+  // -----------------------------
+  svg.append("g")
+    .attr("class", "bars")
+    .selectAll("rect")
+    .data(data)
+    .join("rect")
+    .attr("class", "bar")
+    .attr("data-type", d => d.type)    // for debugging or CSS
+    .attr("x", x(0))
+    .attr("y", d => y(d.label) + barYOffset)
+    .attr("height", barHeight)
+    .attr("rx", 6)
+    .attr("width", 0)
+    .transition()
+    .duration(700)
+    .attr("fill", barColor)     // <-- put inside transition
+    .attr("width", d => x(d.value) - x(0));
+
+
+  // -----------------------------
+  // Labels
+  // -----------------------------
+  svg.append("g")
+    .selectAll("text.value-label")
+    .data(data)
+    .join("text")
+    .attr("class", "value-label")
+    .attr("x", (d) => x(d.value) + 4)
+    .attr("y", (d) => y(d.label) + y.bandwidth() / 2 + 3)
+    .attr("font-size", 11)
+    .attr("fill", (d) => (d.type === "guess" ? "#0c0f1a" : "#444"))
+    .text((d) => `${d.value.toFixed(1)}${unit}`);
+
+  // -----------------------------
+  // Y-axis
+  // -----------------------------
+  const yAxis = d3.axisLeft(y).tickSize(0);
+
+  svg.append("g")
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(yAxis)
+    .call((g) => g.selectAll("text").attr("font-size", 11))
+    .call((g) => g.select(".domain").remove());
+}
+
+function drawFertilityChart({ fert, guess }) {
+  miniChartContainer.selectAll("*").remove();
+
+  const guessVal = isNumber(guess) ? guess : null;
+
+  // Build actual + guess rows
+  let data = [
+    { label: "Average", value: fert, type: "actual" }
+  ];
+  if (isNumber(guessVal)) {
+    data.push({ label: "Your guess", value: guessVal, type: "guess" });
+  }
+
+  // Setup SVG
+  const containerWidth = miniChartContainer.node()
+    ? miniChartContainer.node().getBoundingClientRect().width
+    : 700;
+
+  const width = Math.max(700, containerWidth);
+  const height = data.length * 95 + 40;   // dynamic height for multiple rows
+  const margin = { top: 28, right: 40, bottom: 20, left: 110 };
+
+  const svg = miniChartContainer
+    .append("svg")
+    .attr("width", "100%")
+    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`);
+
+  svg.append("text")
+    .attr("x", margin.left)
+    .attr("y", 16)
+    .attr("fill", "#ddd")
+    .attr("font-size", 13)
+    .text("Average number of children");
+
+  // Positioning scale
+  const y = d3.scaleBand()
+    .domain(data.map(d => d.label))
+    .range([margin.top, height - margin.bottom])
+    .padding(0.45);
+
+  // Icon parameters
+  const iconSize = 42;         // ⭐ bigger babies
+  const iconSpacing = 10;
+  const babyIcon = "👶";       // full baby
+  const partialIcon = "🍼";    // indicates fractional baby
+
+  // Draw each row
+  data.forEach((row) => {
+    const full = Math.floor(row.value);
+    const fraction = row.value - full;
+
+    const yPos = y(row.label) + iconSize * 0.9;
+
+    // Draw full babies
+    for (let i = 0; i < full; i++) {
+      svg.append("text")
+        .attr("x", margin.left + i * (iconSize + iconSpacing))
+        .attr("y", yPos)
+        .attr("font-size", iconSize)
+        .attr("data-type", row.type)
+        .attr("fill", row.type === "guess" ? "#f7e8a4" : "#fdff87")
+        .text(babyIcon);
+    }
+
+    // Draw fractional baby
+    if (fraction > 0.05) {
+      svg.append("text")
+        .attr("x", margin.left + full * (iconSize + iconSpacing))
+        .attr("y", yPos)
+        .attr("font-size", iconSize * 0.85)
+        .attr("opacity", 0.65)
+        .attr("data-type", row.type)
+        .attr("fill", row.type === "guess" ? "#f7e8a4" : "#fdff87")
+        .text(partialIcon);
+    }
+
+    // ⭐ Label showing the number (always)
+    const labelX =
+      margin.left +
+      (full + (fraction > 0 ? 1 : 0)) * (iconSize + iconSpacing) +
+      18;
+
+    svg.append("text")
+      .attr("x", labelX)
+      .attr("y", yPos - iconSize * 0.2)
+      .attr("font-size", 15)
+      .attr("font-weight", 500)
+      .attr("fill", row.type === "guess" ? "#f7e8a4" : "#dfe6f1")
+      .text(`${row.value.toFixed(1)} children`);
+  });
+
+  // Y-axis labels
+  svg.append("g")
+    .attr("transform", `translate(${margin.left - 15},0)`)
+    .call(d3.axisLeft(y).tickSize(0))
+    .call(g => g.selectAll("text")
+      .attr("font-size", 14)
+      .attr("fill", "#eef1f8")
+    )
+    .call(g => g.select(".domain").remove());
 }
 
 
-function drawFertilityChart(fert) {
- miniChartContainer.selectAll("*").remove();
 
- const containerWidth = miniChartContainer.node()
-   ? miniChartContainer.node().getBoundingClientRect().width
-   : 700;
- const width = Math.max(700, containerWidth);
- const height = 150;
- const margin = { top: 16, right: 25, bottom: 16, left: 50 };
-
- const svg = miniChartContainer
- .append("svg")
- .attr("width", "100%")
- .attr("height", height)
- .attr("viewBox", `0 0 ${width} ${height}`);
-
- const maxF = Math.max(1, Math.min(7, fert + 1));
- const x = d3
- .scaleLinear()
- .domain([0, maxF])
- .range([margin.left, width - margin.right]);
- svg
- .append("text")
- .attr("x", margin.left)
- .attr("y", 12)
- .attr("fill", "#555")
- .attr("font-size", 11)
- .text("Average number of children");
-
- 
- svg
- .append("rect")
- .attr("x", x(0))
- .attr("y", height / 2 - 10)
- .attr("width", x(maxF) - x(0))
- .attr("height", 20)
- .attr("rx", 10)
- .attr("fill", "#f1e2ff");
-
- 
- svg
- .append("rect")
- .attr("x", x(0))
- .attr("y", height / 2 - 10)
- .attr("width", 0)
- .attr("height", 20)
- .attr("rx", 10)
- .attr("fill", "#ff8cbc")
- .transition()
- .duration(700)
- .attr("width", x(fert) - x(0));
- svg
- .append("circle")
- .attr("cx", x(fert))
- .attr("cy", height / 2)
- .attr("r", 6)
- .attr("fill", "#ff5e9c");
-
- svg
- .append("text")
- .attr("x", x(fert))
- .attr("y", height / 2 - 16)
- .attr("text-anchor", "middle")
- .attr("font-size", 11)
- .attr("fill", "#333")
- .text(`${fert.toFixed(1)} kids`);
-}
-
-
-function drawLongevityChart({ leSelf, leOther, survSelf, survOther, gender }) {
+function drawLongevityChart({ leSelf, leOther, survSelf, survOther, gender, guess }) {
  miniChartContainer.selectAll("*").remove();
 
  const containerWidth = miniChartContainer.node()
@@ -688,8 +909,10 @@ function drawLongevityChart({ leSelf, leOther, survSelf, survOther, gender }) {
 
  const labelSelf = gender === "male" ? "Boys" : "Girls";
  const labelOther = gender === "male" ? "Girls" : "Boys";
- const selfColor = gender === "male" ? "#7e9cff" : "#ff8cbc";
- const otherColor = gender === "male" ? "#ff8cbc" : "#7e9cff";
+ const girlColor = "#ff8cbc";
+ const boyColor = "#7e9cff";
+ const guessColor = "#f7e8a4";
+ const guessVal = isNumber(guess) ? guess : null;
 
  const data = [
    {
@@ -697,14 +920,25 @@ function drawLongevityChart({ leSelf, leOther, survSelf, survOther, gender }) {
      lifeExp: isNumber(leSelf) ? leSelf : 0,
      hasLife: isNumber(leSelf),
      survival: isNumber(survSelf) ? survSelf : null,
+     type: "self",
    },
    {
      label: labelOther,
      lifeExp: isNumber(leOther) ? leOther : 0,
      hasLife: isNumber(leOther),
      survival: isNumber(survOther) ? survOther : null,
+     type: "other",
    },
  ];
+ if (isNumber(guessVal)) {
+   data.push({
+     label: "Your guess",
+     lifeExp: guessVal,
+     hasLife: true,
+     survival: null,
+     type: "guess",
+   });
+ }
 
  if (!data.some((d) => d.hasLife)) {
    return;
@@ -716,7 +950,7 @@ function drawLongevityChart({ leSelf, leOther, survSelf, survOther, gender }) {
    .attr("height", height)
    .attr("viewBox", `0 0 ${width} ${height}`);
 
-svg
+ svg
   .append("text")
   .attr("x", margin.left)
   .attr("y", 12)
@@ -725,11 +959,12 @@ svg
   .text("Life expectancy (bars, years) & survival to 65 (dot, %)");
 
  const genders = data.map((d) => d.label);
- const maxLife = d3.max(data.map((d) => d.lifeExp).filter(isNumber)) || 90;
+ const maxLife =
+   d3.max([guessVal, ...data.map((d) => d.lifeExp).filter(isNumber)]) || 90;
 
  const x = d3
    .scaleLinear()
-   .domain([40, maxLife])
+  .domain([40, Math.max(40, maxLife)])
    .nice()
    .range([margin.left, width - margin.right]);
 
@@ -738,18 +973,27 @@ svg
     .domain(genders)
     .range([margin.top + 22, height - margin.bottom])
     .padding(0.4);
+ const barHeightLon = y.bandwidth() * 0.62;
+ const barYOffsetLon = y.bandwidth() * 0.19;
 
  svg
    .selectAll("rect.life-bar")
    .data(data)
    .join("rect")
    .attr("class", "life-bar")
+   .attr("data-type", d => d.type)  
    .attr("x", x(40))
-   .attr("y", (d) => y(d.label))
-   .attr("height", y.bandwidth())
+   .attr("y", (d) => y(d.label) + barYOffsetLon)
+   .attr("height", barHeightLon)
    .attr("width", 0)
    .attr("rx", 6)
-   .attr("fill", (d) => (d.label === labelSelf ? selfColor : otherColor))
+   .attr("fill", (d) =>
+     d.type === "guess"
+       ? guessColor
+       : d.label === "Girls"
+       ? girlColor
+       : boyColor
+   )
    .transition()
    .duration(700)
    .attr("width", (d) => x(d.lifeExp) - x(40));
@@ -762,7 +1006,7 @@ svg
    .attr("x", (d) => x(d.lifeExp) + 4)
    .attr("y", (d) => y(d.label) + y.bandwidth() / 2 + 4)
    .attr("font-size", 10.5)
-   .attr("fill", "#333")
+   .attr("fill", (d) => (d.type === "guess" ? "#0c0f1a" : "#333"))
    .text((d) => `${d.lifeExp.toFixed(1)} yrs`);
 
  const survScale = d3
@@ -784,7 +1028,7 @@ svg
 
  svg
    .selectAll("circle.surv-dot")
-   .data(data.filter((d) => isNumber(d.survival)))
+   .data(data.filter((d) => d.type !== "guess" && isNumber(d.survival)))
    .join("circle")
    .attr("class", "surv-dot")
    .attr("cx", (d) => survScale(d.survival))
@@ -821,4 +1065,68 @@ svg
        .attr("fill", "#444")
    )
    .call((g) => g.select(".domain").remove());
+}
+
+// New function to show path comparison
+function showPathComparison() {
+  const comparisons = {
+    "Africa": { 
+      better: [],
+      worse: ["Europe", "Northern America", "Latin America & the Caribbean", "Oceania"],
+      message: "Your African path faces more educational challenges than most other regions, but progress is happening."
+    },
+    "Asia": {
+      better: ["Africa"],
+      worse: ["Europe", "Northern America", "Oceania"],
+      message: "Your Asian path has seen dramatic improvements, especially in closing gender gaps."
+    },
+    "Middle East & North Africa": {
+      better: ["Africa", "Asia"],
+      worse: ["Europe", "Northern America"],
+      message: "Your Middle Eastern path shows rapid progress, with women now leading in university enrollment."
+    },
+    "Europe": {
+      better: ["Africa", "Asia", "Middle East & North Africa", "Latin America & the Caribbean"],
+      worse: ["Northern America"],
+      message: "Your European path has strong education access, with women dominating higher education."
+    },
+    "Latin America & the Caribbean": {
+      better: ["Africa", "Asia", "Middle East & North Africa"],
+      worse: ["Europe", "Northern America", "Oceania"],
+      message: "Your Latin American path shows girls overtaking boys in both secondary and tertiary education."
+    },
+    "Northern America": {
+      better: ["Africa", "Asia", "Middle East & North Africa", "Latin America & the Caribbean", "Europe"],
+      worse: [],
+      message: "Your North American path has the highest education access globally, with women far exceeding men in universities."
+    },
+    "Oceania": {
+      better: ["Africa", "Asia", "Middle East & North Africa"],
+      worse: [],
+      message: "Your Oceanic path shows the strongest female advantage in university enrollment worldwide."
+    }
+  };
+  
+  const comp = comparisons[currentRegion];
+  if (!comp) return;
+  
+  const compSection = d3.select("#path-comparison");
+  compSection.style("display", "block");
+  
+  const comparisonHTML = `
+    <div class="path-comparison">
+      <h3>How your ${currentRegion} path compares to others</h3>
+      <p>${comp.message}</p>
+      <div class="comparison-bars">
+        ${comp.better.map(r => `<div class="better">Better than ${r}: Your path had more opportunities</div>`).join('')}
+        ${comp.worse.map(r => `<div class="worse">Behind ${r}: They had better opportunities</div>`).join('')}
+      </div>
+    </div>
+  `;
+  
+  compSection.html(comparisonHTML)
+    .style("opacity", 0)
+    .transition()
+    .duration(500)
+    .style("opacity", 1);
 }
